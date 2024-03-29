@@ -1,8 +1,6 @@
 package com.example.wallpaper.navigation
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
@@ -22,21 +20,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.Navigation
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.wallpaper.DetailScreen
 import com.example.wallpaper.HomeScreen
 import com.example.wallpaper.New_Wallpaper_Screen
 import com.example.wallpaper.SearchScreen
 import com.example.wallpaper.SettingScreen
-import java.security.KeyStore.Entry
 
 @Composable
 fun Navigation(navController: NavHostController) {
@@ -53,6 +49,9 @@ fun Navigation(navController: NavHostController) {
         }
         composable(Screen.Setting.route) {
             SettingScreen(navController)
+        }
+        composable(Screen.Detail.route){
+            DetailScreen(navController)
         }
     }
 }
@@ -73,6 +72,13 @@ sealed class Screen(
     object New_Wallpaper : Screen(
         "Wallpaper",
         "Wallpaper",
+        selectedIcon = Icons.Filled.Wallpaper,
+        unSelectedIcon = Icons.Outlined.Wallpaper
+    )
+
+    object Detail : Screen(
+        "Detail",
+        "Detail",
         selectedIcon = Icons.Filled.Wallpaper,
         unSelectedIcon = Icons.Outlined.Wallpaper
     )

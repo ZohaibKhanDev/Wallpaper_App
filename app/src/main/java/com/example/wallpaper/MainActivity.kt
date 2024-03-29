@@ -13,7 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -46,7 +47,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.ImageLoader
 import coil.compose.AsyncImage
 import com.example.wallpaper.api.MainViewModel
 import com.example.wallpaper.api.Photo
@@ -54,6 +54,7 @@ import com.example.wallpaper.api.Repository
 import com.example.wallpaper.api.ResultState
 import com.example.wallpaper.api.Wallpaper
 import com.example.wallpaper.navigation.Entry
+import com.example.wallpaper.navigation.Screen
 import com.example.wallpaper.ui.theme.WallpaperTheme
 
 class MainActivity : ComponentActivity() {
@@ -160,28 +161,71 @@ fun HomeScreen(navController: NavController) {
 fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: NavController) {
     val context = LocalContext.current
 
-    LazyVerticalGrid(columns = GridCells.Adaptive(200.dp)) {
-        items(photo) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(all = 12.dp),
-                elevation = CardDefaults.cardElevation(5.dp)
-            ) {
-                Column(modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceBetween) {
-                    AsyncImage(
-                        model = it.src.landscape,
-                        contentDescription = "",
-                        modifier = Modifier.clickable {  }
-                    )
+    Column(
+        modifier = Modifier.wrapContentWidth(),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "New WallPaper")
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.padding(top = 30.dp)
+        ) {
+            items(photo) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    elevation = CardDefaults.cardElevation(5.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        AsyncImage(
+                            model = it.src.landscape,
+                            contentDescription = "",
+                            modifier = Modifier.clickable {
+                                navController.navigate(Screen.Detail.route)
+                            }
+                        )
+                    }
+                }
+            }
+
+
+        }
+
+
+        LazyRow {
+            items(photo) {
+                Card(
+                    elevation = CardDefaults.cardElevation(5.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        AsyncImage(
+                            model = it.src.landscape,
+                            contentDescription = "",
+                            modifier = Modifier.clickable {
+
+                            }
+                        )
+                    }
                 }
             }
         }
     }
 
+
 }
+
 
 @Composable
 fun New_Wallpaper_Screen(navController: NavController) {
@@ -205,6 +249,11 @@ fun SettingScreen(navController: NavController) {
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
         Text(text = "This is  Setting Screen")
     }
+}
+
+@Composable
+fun DetailScreen(navController: NavController) {
+
 }
 
 

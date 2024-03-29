@@ -59,6 +59,6 @@ object WallpaperClientApi {
     }
 
     suspend fun getAllWallpaper():Wallpaper{
-        return client.get(BASE_URL + "v1/search?query=nature&per_page=20").body()
+        return client.get(BASE_URL + "v1/search?query=nature&per_page=30").body()
     }
 }
