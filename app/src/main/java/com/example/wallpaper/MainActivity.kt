@@ -1,18 +1,25 @@
 package com.example.wallpaper
 
 import android.annotation.SuppressLint
+import android.app.DownloadManager
+import android.app.WallpaperManager
+import android.content.Context
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,9 +32,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Comment
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAddAlt1
+import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -35,10 +52,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -52,7 +71,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -85,8 +106,7 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {
-    /*val context = LocalContext.current
+fun HomeScreen(navController: NavController) {/*val context = LocalContext.current
         val db = Room.databaseBuilder(
             context,
             RoomDatabase::class.java,
@@ -100,13 +120,13 @@ fun HomeScreen(navController: NavController) {
         MainViewModel(repository)
     }
     WallpaperTheme {
-        val isWallpaper by remember {
+        var isWallpaper by remember {
             mutableStateOf(false)
         }
         var wallpaperData by remember {
             mutableStateOf<Wallpaper?>(null)
         }
-        LaunchedEffect(key1 = isWallpaper) {
+        LaunchedEffect(key1 = Unit) {
             viewModel.getAllWallpaper()
         }
 
@@ -115,38 +135,32 @@ fun HomeScreen(navController: NavController) {
             is ResultState.Error -> {
                 val error = (state as ResultState.Error).error
                 Text(text = error.toString())
+                isWallpaper = false
             }
 
-            ResultState.Loading -> {
-                Box(
-                    contentAlignment = Alignment.Center
-
-                ) {
-                    CircularProgressIndicator()
-                }
+            is ResultState.Loading -> {
+                isWallpaper = true
             }
 
             is ResultState.Success -> {
                 val success = (state as ResultState.Success).response
                 wallpaperData = success
+                isWallpaper = false
             }
         }
 
         Scaffold(topBar = {
             TopAppBar(title = {
                 Text(text = "WallPapers")
+            }, colors = TopAppBarDefaults.topAppBarColors(Color(0XFF8593ff)), actions = {
+                Icon(imageVector = Icons.Default.Search, contentDescription = "")
+                Spacer(modifier = Modifier.width(10.dp))
+                Icon(imageVector = Icons.Default.MoreVert, contentDescription = "")
             },
-                colors = TopAppBarDefaults.topAppBarColors(Color(0XFF8593ff)),
-                actions = {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = "")
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = "")
-                },
 
                 navigationIcon = {
                     Icon(imageVector = Icons.Default.Home, contentDescription = "")
-                }
-            )
+                })
         }) {
             Surface(
                 modifier = Modifier
@@ -154,11 +168,15 @@ fun HomeScreen(navController: NavController) {
                     .padding(top = it.calculateTopPadding()),
                 color = MaterialTheme.colorScheme.background
             ) {
-                wallpaperData?.photos?.let {
+                if (isWallpaper) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+
+                }
+                wallpaperData?.photos?.let { photo ->
                     WallpaperData(
-                        photo = it,
-                        viewModel = viewModel,
-                        navController = navController
+                        photo = photo, viewModel = viewModel, navController = navController
                     )
                 }
 
@@ -180,8 +198,7 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
     ) {
         Text(text = "New WallPaper")
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier.padding(top = 10.dp)
+            columns = GridCells.Fixed(2), modifier = Modifier.padding(top = 10.dp)
         ) {
             items(photo) {
                 Card(
@@ -195,13 +212,17 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        AsyncImage(
-                            model = it.src.landscape,
-                            contentDescription = "",
-                            modifier = Modifier.clickable {
-                                navController.navigate(Screen.Detail.route + "/${Uri.encode(it.src.landscape)}")
-                            }
-                        )
+                        Box(contentAlignment = Alignment.BottomCenter) {
+                            AsyncImage(model = it.src.landscape,
+                                contentDescription = "",
+                                modifier = Modifier.clickable {
+                                    navController.navigate(
+                                        Screen.Detail.route +
+                                                "/${Uri.encode(it.src.landscape)}"
+                                    )
+                                })
+
+                        }
                     }
                 }
             }
@@ -222,13 +243,11 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        AsyncImage(
-                            model = it.src.landscape,
+                        AsyncImage(model = it.src.landscape,
                             contentDescription = "",
                             modifier = Modifier.clickable {
 
-                            }
-                        )
+                            })
                     }
                 }
             }
@@ -265,6 +284,11 @@ fun SettingScreen(navController: NavController) {
 
 @Composable
 fun DetailScreen(navController: NavController, image: String?) {
+    var like by remember {
+        mutableStateOf(false)
+    }
+    val context = LocalContext.current
+
     Box(contentAlignment = Alignment.Center) {
 
         AsyncImage(
@@ -277,7 +301,8 @@ fun DetailScreen(navController: NavController, image: String?) {
         )
 
 
-        Icon(imageVector = Icons.Default.ArrowBackIosNew,
+        Icon(
+            imageVector = Icons.Default.ArrowBackIosNew,
             contentDescription = "",
             modifier = Modifier
                 .align(
@@ -288,14 +313,96 @@ fun DetailScreen(navController: NavController, image: String?) {
             colorResource(id = R.color.white)
         )
 
-        Image(
-            painter = painterResource(id = R.drawable.applelogo),
+        Spacer(modifier = Modifier.height(10.dp))
+        Icon(imageVector = Icons.Default.Person,
             contentDescription = "",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.clip(
-                CircleShape
-            ).size(30.dp).align(Alignment.CenterEnd)
-        )
+            tint = Color.White,
+            modifier = Modifier
+                .padding(end = 5.dp, top = 100.dp)
+                .clip(
+                    CircleShape
+                )
+                .align(Alignment.CenterEnd)
+                .size(30.dp)
+                .clickable { })
+        Spacer(modifier = Modifier.height(10.dp))
+        if (like) {
+            Icon(imageVector = Icons.Filled.Favorite,
+                contentDescription = "",
+                tint = Color.White,
+                modifier = Modifier
+                    .padding(end = 5.dp, top = 200.dp)
+                    .clip(
+                        CircleShape
+                    )
+                    .align(Alignment.CenterEnd)
+                    .size(30.dp)
+                    .clickable { like = like })
+
+        } else {
+            Icon(imageVector = Icons.Outlined.Favorite,
+                contentDescription = "",
+                tint = Color.White,
+                modifier = Modifier
+                    .padding(end = 5.dp, top = 200.dp)
+                    .clip(
+                        CircleShape
+                    )
+                    .align(Alignment.CenterEnd)
+                    .size(30.dp)
+                    .clickable {
+
+
+                    })
+
+        }
+
+
+        Spacer(modifier = Modifier.height(10.dp))
+        Icon(imageVector = Icons.Default.Share,
+            contentDescription = "",
+            tint = Color.White,
+            modifier = Modifier
+                .padding(end = 5.dp, top = 300.dp)
+                .clip(
+                    CircleShape
+                )
+                .align(Alignment.CenterEnd)
+                .size(30.dp)
+                .clickable { })
+
+        Spacer(modifier = Modifier.height(10.dp))
+        Icon(imageVector = Icons.Default.Download,
+            contentDescription = "",
+            tint = Color.White,
+            modifier = Modifier
+                .padding(end = 5.dp, top = 400.dp)
+                .clip(
+                    CircleShape
+                )
+                .align(Alignment.CenterEnd)
+                .size(30.dp)
+                .clickable {
+                    val downloadManager =
+                        context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                    val uri = Uri.parse(image)
+                    val request = DownloadManager
+                        .Request(uri)
+                        .setTitle(image)
+                        .setDescription("This is description")
+                        .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE or DownloadManager.Request.NETWORK_WIFI)
+                        .setAllowedOverRoaming(true)
+                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                        .setDestinationInExternalPublicDir(
+                            android.os.Environment.DIRECTORY_DOWNLOADS,
+                            "zohaib.png"
+                        )
+
+                    downloadManager.enqueue(request)
+
+                })
+
+
     }
 
 
