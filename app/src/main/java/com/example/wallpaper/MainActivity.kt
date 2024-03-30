@@ -282,7 +282,7 @@ fun DetailScreen(navController: NavController, image: String?) {
 
 
         Button(onClick = {}, colors = ButtonDefaults.buttonColors(Color.Red), modifier = Modifier.align(
-            Alignment.Center).padding(top = 90.dp)) {
+            Alignment.BottomCenter).padding(bottom = 79.dp).fillMaxWidth()) {
             Text(text = "Download")
         }
     }
