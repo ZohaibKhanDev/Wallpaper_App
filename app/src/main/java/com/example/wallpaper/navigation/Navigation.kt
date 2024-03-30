@@ -56,10 +56,12 @@ fun Navigation(navController: NavHostController) {
             arguments = listOf(
                 navArgument("src"){
                     type= NavType.StringType
-                }
+                },
+
             )
             ){
             val image=it.arguments?.getString("src")
+
             DetailScreen(navController,image)
         }
     }
