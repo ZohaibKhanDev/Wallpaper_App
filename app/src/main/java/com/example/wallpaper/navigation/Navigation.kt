@@ -24,10 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.wallpaper.DetailScreen
 import com.example.wallpaper.HomeScreen
 import com.example.wallpaper.New_Wallpaper_Screen
@@ -50,8 +52,15 @@ fun Navigation(navController: NavHostController) {
         composable(Screen.Setting.route) {
             SettingScreen(navController)
         }
-        composable(Screen.Detail.route){
-            DetailScreen(navController)
+        composable(Screen.Detail.route +"/{src}",
+            arguments = listOf(
+                navArgument("src"){
+                    type= NavType.StringType
+                }
+            )
+            ){
+            val image=it.arguments?.getString("src")
+            DetailScreen(navController,image)
         }
     }
 }

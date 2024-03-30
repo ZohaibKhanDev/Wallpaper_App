@@ -1,9 +1,11 @@
 package com.example.wallpaper
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.ColorRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,9 +22,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,9 +49,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import coil.compose.AsyncImage
 import com.example.wallpaper.api.MainViewModel
 import com.example.wallpaper.api.Photo
@@ -74,7 +84,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
-    /*   val context = LocalContext.current
+   /*val context = LocalContext.current
        val db = Room.databaseBuilder(
            context,
            RoomDatabase::class.java,
@@ -94,7 +104,7 @@ fun HomeScreen(navController: NavController) {
         var wallpaperData by remember {
             mutableStateOf<Wallpaper?>(null)
         }
-        LaunchedEffect(key1 = Unit) {
+        LaunchedEffect(key1 = isWallpaper) {
             viewModel.getAllWallpaper()
         }
 
@@ -107,8 +117,8 @@ fun HomeScreen(navController: NavController) {
 
             ResultState.Loading -> {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
+
                 ) {
                     CircularProgressIndicator()
                 }
@@ -169,7 +179,7 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
         Text(text = "New WallPaper")
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            modifier = Modifier.padding(top = 30.dp)
+            modifier = Modifier.padding(top = 10.dp)
         ) {
             items(photo) {
                 Card(
@@ -187,7 +197,7 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
                             model = it.src.landscape,
                             contentDescription = "",
                             modifier = Modifier.clickable {
-                                navController.navigate(Screen.Detail.route)
+                                navController.navigate(Screen.Detail.route + "/${Uri.encode(it.src.landscape)}")
                             }
                         )
                     }
@@ -252,7 +262,32 @@ fun SettingScreen(navController: NavController) {
 }
 
 @Composable
-fun DetailScreen(navController: NavController) {
+fun DetailScreen(navController: NavController, image: String?) {
+    Box(contentAlignment = Alignment.Center) {
+
+        AsyncImage(
+            model = image,
+            contentDescription = "",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.FillBounds,
+            clipToBounds = true,
+            filterQuality = FilterQuality.High,
+        )
+        Icon(imageVector = Icons.Default.ArrowBackIosNew, contentDescription = "", modifier = Modifier
+            .align(
+                Alignment.TopStart
+            )
+            .padding(top = 7.dp, start = 6.dp)
+            .clickable { navController.popBackStack() }, colorResource(id = R.color.white))
+
+
+        Button(onClick = {}, colors = ButtonDefaults.buttonColors(Color.Red), modifier = Modifier.align(
+            Alignment.Center).padding(top = 90.dp)) {
+            Text(text = "Download")
+        }
+    }
+
+
 
 }
 
