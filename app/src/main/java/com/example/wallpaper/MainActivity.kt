@@ -13,13 +13,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -28,16 +26,16 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -64,18 +62,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.room.Room
+import androidx.room.util.copyAndClose
 import coil.compose.AsyncImage
 import com.example.wallpaper.api.MainViewModel
 import com.example.wallpaper.api.Photo
 import com.example.wallpaper.api.Repository
 import com.example.wallpaper.api.ResultState
 import com.example.wallpaper.api.Wallpaper
-import com.example.wallpaper.navigation.DetailScreen
 import com.example.wallpaper.navigation.Entry
+import com.example.wallpaper.navigation.Screen
 import com.example.wallpaper.roomdatabase.FavItem
 import com.example.wallpaper.roomdatabase.MyDataBase
 import com.example.wallpaper.ui.theme.WallpaperTheme
@@ -263,7 +261,7 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
                                 modifier = Modifier
                                     .clickable {
                                         navController.navigate(
-                                            DetailScreen.Detail.route +
+                                            Screen.Detail.route +
                                                     "/${Uri.encode(it.src.landscape)}"
                                         )
                                     }
@@ -445,6 +443,9 @@ fun NewScreen(navController: NavController, image: String?) {
         MainViewModel(repository)
     }
 
+    var info by remember {
+        mutableStateOf(false)
+    }
 
 
 
@@ -459,138 +460,187 @@ fun NewScreen(navController: NavController, image: String?) {
             filterQuality = FilterQuality.High,
         )
 
-        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 650.dp)) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(top = 650.dp, end = 150.dp)
+        ) {
             Box(
                 modifier = Modifier
-                    .width(40.dp).height(40.dp).clip(CircleShape)
-                    .background(Color(0XFF3c3d45).copy(alpha= 0.70f)),
+                    .width(40.dp)
+                    .height(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0XFF3c3d45).copy(alpha = 0.70f)),
                 contentAlignment = Alignment.Center,
             ) {
-                if (like){
-                Icon(imageVector = Icons.Filled.Favorite , contentDescription = "", tint = Color.Red, modifier = Modifier.clickable {
-                    like=!like
-                }
-                )}
-                else{
-                    Icon(imageVector = Icons.Default.FavoriteBorder , contentDescription = "", tint = Color.White, modifier = Modifier.clickable {
-                        like = !like
-                        val fav = image?.let { FavItem(null, it, "des") }
-                        fav?.let { viewModel.Insert(it) }
-                    })
+                if (like) {
+                    Icon(
+                        imageVector = Icons.Filled.Favorite,
+                        contentDescription = "",
+                        tint = Color.Red,
+                        modifier = Modifier.clickable {
+                            like = !like
+                        }
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.FavoriteBorder,
+                        contentDescription = "",
+                        tint = Color.White,
+                        modifier = Modifier.clickable {
+                            like = !like
+                            val fav = image?.let { FavItem(null, it, "des") }
+                            fav?.let { viewModel.Insert(it) }
+                        })
                 }
             }
         }
 
-        Icon(
-            imageVector = Icons.Default.ArrowBackIosNew,
-            contentDescription = "",
-            modifier = Modifier
-                .align(
-                    Alignment.TopStart
-                )
-                .padding(top = 7.dp, start = 6.dp)
-                .clickable { navController.popBackStack() },
-            colorResource(id = R.color.white)
-        )
 
-        Spacer(modifier = Modifier.height(10.dp))
-        Icon(imageVector = Icons.Default.Person,
-            contentDescription = "",
-            tint = Color.White,
-            modifier = Modifier
-                .padding(end = 5.dp, top = 100.dp)
-                .clip(
-                    CircleShape
-                )
-                .align(Alignment.CenterEnd)
-                .size(30.dp)
-                .clickable { })
-        Spacer(modifier = Modifier.height(10.dp))
-        if (like) {
-            Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = "",
+
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(top = 650.dp)
+        ) {
+            Box(
                 modifier = Modifier
-                    .padding(end = 5.dp, top = 200.dp)
-                    .clip(
-                        CircleShape
-                    )
-                    .align(Alignment.CenterEnd)
-                    .size(30.dp)
-                    .clickable {
-                        like = !like
+                    .width(40.dp)
+                    .height(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0XFF3c3d45).copy(alpha = 0.70f)),
+                contentAlignment = Alignment.Center,
+            ) {
 
+                Icon(
+                    imageVector = Icons.Default.CloudDownload,
+                    contentDescription = "",
+                    tint = Color.White,
+                    modifier = Modifier.clickable {
+                        val downloadManager =
+                            context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                        val uri = Uri.parse(image)
+                        val request = DownloadManager
+                            .Request(uri)
+                            .setTitle(image)
+                            .setDescription("This is description")
+                            .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE or DownloadManager.Request.NETWORK_WIFI)
+                            .setAllowedOverRoaming(true)
+                            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                            .setDestinationInExternalPublicDir(
+                                android.os.Environment.DIRECTORY_DOWNLOADS,
+                                "zohaib.png"
+                            )
 
-                    },
-                tint = Color.Red
-            )
+                        downloadManager.enqueue(request)
 
-        } else {
-            Icon(imageVector = Icons.Outlined.FavoriteBorder,
-                contentDescription = "",
-                tint = Color.White,
+                    }
+                )
+
+            }
+        }
+
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(top = 650.dp, start = 150.dp)
+        ) {
+            Box(
                 modifier = Modifier
-                    .padding(end = 5.dp, top = 200.dp)
-                    .clip(
-                        CircleShape
-                    )
-                    .align(Alignment.CenterEnd)
-                    .size(30.dp)
-                    .clickable {
-                        like = !like
-                        val fav = image?.let { FavItem(null, it, "des") }
-                        fav?.let { viewModel.Insert(it) }
-                    })
+                    .width(40.dp)
+                    .height(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0XFF3c3d45).copy(alpha = 0.70f)),
+                contentAlignment = Alignment.Center,
+            ) {
 
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "",
+                    tint = Color.White,
+                    modifier = Modifier.clickable {
+                        shareText(context, "$image")
+                    }
+                )
+
+            }
+        }
+
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.padding(bottom = 820.dp, start = 350.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .height(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0XFF3c3d45).copy(alpha = 0.70f)),
+                contentAlignment = Alignment.Center,
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = "",
+                    tint = Color.White,
+                    modifier = Modifier.clickable {
+                        info = !info
+                    }
+                )
+
+            }
         }
 
 
-        Spacer(modifier = Modifier.height(10.dp))
-        Icon(imageVector = Icons.Default.Share,
-            contentDescription = "",
-            tint = Color.White,
-            modifier = Modifier
-                .padding(end = 5.dp, top = 300.dp)
-                .clip(
-                    CircleShape
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.End,
+            modifier = Modifier.padding(bottom = 820.dp, end = 350.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .height(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0XFF3c3d45).copy(alpha = 0.70f)),
+                contentAlignment = Alignment.Center,
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "",
+                    tint = Color.White,
+                    modifier = Modifier.clickable {
+                        navController.popBackStack()
+                    }
                 )
-                .align(Alignment.CenterEnd)
-                .size(30.dp)
-                .clickable {
 
-                    shareText(context, "$image")
-                })
+            }
+        }
 
-        Spacer(modifier = Modifier.height(10.dp))
-        Icon(imageVector = Icons.Default.Download,
-            contentDescription = "",
-            tint = Color.White,
-            modifier = Modifier
-                .padding(end = 5.dp, top = 400.dp)
-                .clip(
-                    CircleShape
-                )
-                .align(Alignment.CenterEnd)
-                .size(30.dp)
-                .clickable {
-                    val downloadManager =
-                        context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                    val uri = Uri.parse(image)
-                    val request = DownloadManager
-                        .Request(uri)
-                        .setTitle(image)
-                        .setDescription("This is description")
-                        .setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE or DownloadManager.Request.NETWORK_WIFI)
-                        .setAllowedOverRoaming(true)
-                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                        .setDestinationInExternalPublicDir(
-                            android.os.Environment.DIRECTORY_DOWNLOADS,
-                            "zohaib.png"
-                        )
+        if (info) {
+            AlertDialog(
+                onDismissRequest = { info = !info }, confirmButton = {
+                    Text(text ="Ok", modifier = Modifier.clickable { info=!info})
+                },
+                title = {
+                    Text(text = "WallPaper")
+                },
+                text = {
+                    Text(text = "$image")
 
-                    downloadManager.enqueue(request)
 
-                })
+                },
+                tonalElevation = 10.dp,
+
+              /*  dismissButton = {
+                    Text(text = "Cancel", modifier = Modifier.clickable { info = !info })
+                }*/
+
+
+            )
+        }
 
 
     }

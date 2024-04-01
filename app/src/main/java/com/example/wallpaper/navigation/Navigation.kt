@@ -1,6 +1,9 @@
 package com.example.wallpaper.navigation
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
@@ -13,6 +16,8 @@ import androidx.compose.material.icons.outlined.Wallpaper
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,8 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -54,7 +61,7 @@ fun Navigation(navController: NavHostController) {
             SettingScreen(navController)
         }
         composable(
-            DetailScreen.Detail.route + "/{src}",
+            Screen.Detail.route + "/{src}",
             arguments = listOf(
                 navArgument("src") {
                     type = NavType.StringType
@@ -69,11 +76,7 @@ fun Navigation(navController: NavHostController) {
         }
     }
 }
-sealed class DetailScreen(
-    val route: String
-){
-    object Detail:DetailScreen("DetailScreen")
-}
+
 
 sealed class Screen(
     val title: String,
@@ -88,13 +91,19 @@ sealed class Screen(
         unSelectedIcon = Icons.Outlined.Home
     )
 
+    object Detail : Screen(
+        "Detail",
+        "Detail",
+        selectedIcon = Icons.Filled.Home,
+        unSelectedIcon = Icons.Outlined.Home
+    )
+
     object New_Wallpaper : Screen(
         "Fav Wallpaper",
         "Fav Wallpaper",
         selectedIcon = Icons.Filled.Wallpaper,
         unSelectedIcon = Icons.Outlined.Wallpaper
     )
-
 
 
     object Search : Screen(
@@ -143,26 +152,37 @@ fun BottomNavigation(navController: NavController) {
         }
 
         items.forEach {
-            NavigationBarItem(selected = current == it.route, onClick = {
-                navController.navigate(it.route) {
-                    navController.graph?.let {
-                        it.route?.let { it1 -> popUpTo(it1) }
-                        launchSingleTop = true
-                        restoreState = true
+            NavigationBarItem(
+                colors = NavigationBarItemColors(
+                    selectedIconColor = Color.White,
+                    selectedTextColor = Color.White,
+                    selectedIndicatorColor = Color(0XFFDF1F5A),
+                    unselectedIconColor = Color.White,
+                    disabledIconColor = Color.White,
+                    unselectedTextColor = Color.White,
+                    disabledTextColor = Color.White
+                ),
+                selected = current == it.route,
+                onClick = {
+                    navController.navigate(it.route) {
+                        navController.graph?.let {
+                            it.route?.let { it1 -> popUpTo(it1) }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }
-            }, icon = {
+                },
+                icon = {
 
-                Icon(
-                    imageVector = if (current == it.route) it.selectedIcon else it.unSelectedIcon,
-                    contentDescription = "",
-                    tint = Color.White
+                    Icon(
+                        imageVector = if (current == it.route) it.selectedIcon else it.unSelectedIcon,
+                        contentDescription = "",
+                        tint = Color.White,
+                        modifier = Modifier.width(32.dp).height(28.dp)
+                    )
+                },
+
                 )
-            },
-                label = {
-                    Text(text = it.route, color = Color.White)
-                }
-            )
         }
     }
 
