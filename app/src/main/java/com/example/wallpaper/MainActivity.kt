@@ -2,16 +2,13 @@ package com.example.wallpaper
 
 import android.annotation.SuppressLint
 import android.app.DownloadManager
-import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,8 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -33,32 +29,25 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PersonAddAlt1
-import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -72,24 +61,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavController
+import androidx.room.Room
 import coil.compose.AsyncImage
 import com.example.wallpaper.api.MainViewModel
 import com.example.wallpaper.api.Photo
 import com.example.wallpaper.api.Repository
 import com.example.wallpaper.api.ResultState
 import com.example.wallpaper.api.Wallpaper
+import com.example.wallpaper.navigation.DetailScreen
 import com.example.wallpaper.navigation.Entry
-import com.example.wallpaper.navigation.Screen
+import com.example.wallpaper.roomdatabase.FavItem
+import com.example.wallpaper.roomdatabase.MyDataBase
 import com.example.wallpaper.ui.theme.WallpaperTheme
 
 class MainActivity : ComponentActivity() {
@@ -108,15 +96,16 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {/*val context = LocalContext.current
-        val db = Room.databaseBuilder(
-            context,
-            RoomDatabase::class.java,
-            "demo.db"
-        ).allowMainThreadQueries()
-            .build()*/
+fun HomeScreen(navController: NavController) {
+    val context = LocalContext.current
+    val db = Room.databaseBuilder(
+        context,
+        MyDataBase::class.java,
+        "demo.db"
+    ).allowMainThreadQueries()
+        .build()
     val repository = remember {
-        Repository()
+        Repository(db)
     }
     val viewModel = remember {
         MainViewModel(repository)
@@ -131,6 +120,7 @@ fun HomeScreen(navController: NavController) {/*val context = LocalContext.curre
         LaunchedEffect(key1 = Unit) {
             viewModel.getAllWallpaper()
         }
+
 
         val state by viewModel.allWallpaper.collectAsState()
         when (state) {
@@ -150,18 +140,60 @@ fun HomeScreen(navController: NavController) {/*val context = LocalContext.curre
                 isWallpaper = false
             }
         }
+        var favData by remember {
+            mutableStateOf<List<FavItem>?>(null)
+        }
+        val isFav by remember {
+            mutableStateOf(false)
+        }
+
+        LaunchedEffect(key1 = isFav) {
+            viewModel.getAllFav()
+        }
+
+        val favState by viewModel.allFav.collectAsState()
+
+        when (favState) {
+            is ResultState.Error -> {
+                val error = (favState as ResultState.Error).error
+                Text(text = error.toString())
+            }
+
+            ResultState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            is ResultState.Success -> {
+                val success = (favState as ResultState.Success).response
+                favData = success
+            }
+        }
 
         Scaffold(topBar = {
             TopAppBar(title = {
-                Text(text = "WallPapers")
-            }, colors = TopAppBarDefaults.topAppBarColors(Color(0XFF8593ff)), actions = {
-                Icon(imageVector = Icons.Default.Search, contentDescription = "")
+                Text(text = "WallPapers", color = Color.White)
+            }, colors = TopAppBarDefaults.topAppBarColors(Color(0XFF14182b)), actions = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "",
+                    tint = Color.White
+                )
                 Spacer(modifier = Modifier.width(10.dp))
-                Icon(imageVector = Icons.Default.MoreVert, contentDescription = "")
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "",
+                    tint = Color.White
+                )
             },
 
                 navigationIcon = {
-                    Icon(imageVector = Icons.Default.Home, contentDescription = "")
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "",
+                        tint = Color.White
+                    )
                 })
         }) {
             Surface(
@@ -193,35 +225,49 @@ fun HomeScreen(navController: NavController) {/*val context = LocalContext.curre
 fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: NavController) {
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0XFF14182b)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "New WallPaper")
+        Text(text = "New WallPaper", color = Color.White)
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2), modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 10.dp)
+            columns = GridCells.Fixed(2), modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0XFF14182b))
+                .weight(1f)
+                .padding(top = 10.dp)
         ) {
             items(photo) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
+                        .background(Color(0XFF14182b))
+                        .padding(7.dp),
                     elevation = CardDefaults.cardElevation(5.dp)
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0XFF14182b)),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Box(contentAlignment = Alignment.BottomCenter) {
+                        Box(
+                            contentAlignment = Alignment.BottomCenter,
+                            modifier = Modifier.background(Color(0XFF14182b))
+                        ) {
                             AsyncImage(model = it.src.landscape,
                                 contentDescription = "",
-                                modifier = Modifier.clickable {
-                                    navController.navigate(
-                                        Screen.Detail.route +
-                                                "/${Uri.encode(it.src.landscape)}"
-                                    )
-                                })
+                                modifier = Modifier
+                                    .clickable {
+                                        navController.navigate(
+                                            DetailScreen.Detail.route +
+                                                    "/${Uri.encode(it.src.landscape)}"
+                                        )
+                                    }
+                                    .background(Color(0XFF14182b)))
 
                         }
                     }
@@ -232,40 +278,137 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
         }
 
 
-      /*  LazyRow (modifier = Modifier.fillMaxWidth().weight(1f)){
-            items(photo) {
-                Card(
-                    elevation = CardDefaults.cardElevation(5.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        AsyncImage(model = it.src.landscape,
-                            contentDescription = "",
-                            modifier = Modifier.clickable {
+        /*  LazyRow (modifier = Modifier.fillMaxWidth().weight(1f)){
+              items(photo) {
+                  Card(
+                      elevation = CardDefaults.cardElevation(5.dp)
+                  ) {
+                      Column(
+                          modifier = Modifier
+                              .fillMaxWidth()
+                              .padding(8.dp),
+                          horizontalAlignment = Alignment.CenterHorizontally,
+                          verticalArrangement = Arrangement.Center
+                      ) {
+                          AsyncImage(model = it.src.landscape,
+                              contentDescription = "",
+                              modifier = Modifier.clickable {
 
-                            })
-                    }
-                }
-            }
-        }*/
+                              })
+                      }
+                  }
+              }
+          }*/
     }
 
 
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun BottomFav(navController: NavController) {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+
+    val isDarkValue = sharedPreferences.getBoolean("darkMode", false)
+    var switchState by remember {
+        mutableStateOf(isDarkValue)
+    }
+
+    val db = Room.databaseBuilder(
+        context, MyDataBase::class.java, "demo.db"
+    ).allowMainThreadQueries().build()
+    val repository = remember {
+        Repository(db)
+    }
+    val viewModel = remember {
+        MainViewModel(repository)
+    }
+    var favData by remember {
+        mutableStateOf<List<FavItem>?>(null)
+    }
+    val isFav by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(key1 = isFav) {
+        viewModel.getAllFav()
+    }
+    val favState by viewModel.allFav.collectAsState()
+    when (favState) {
+        is ResultState.Error -> {
+            val error = (favState as ResultState.Error).error
+            Text(text = error.toString())
+        }
+
+        ResultState.Loading -> {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+
+        is ResultState.Success -> {
+            val success = (favState as ResultState.Success).response
+            favData = success
+        }
+    }
+
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(title = {
+                Text(text = "Fav WallPaper", color = Color.White)
+            }, colors = TopAppBarDefaults.topAppBarColors(Color(0XFF14182b)))
+        }
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0XFF14182b))
+                .padding(top = 15.dp, bottom = 30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            favData?.let {
+                items(it) { fav ->
+                    New_Wallpaper_Screen(
+                        navController = navController,
+                        FavItem(null, fav.image, fav.des)
+                    )
+                }
+            }
+        }
+    }
 }
 
 
 @Composable
-fun New_Wallpaper_Screen(navController: NavController) {
+fun New_Wallpaper_Screen(navController: NavController, favItem: FavItem) {
+    val context = LocalContext.current
 
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-        Text(text = "This is  New Wallpaper Screen")
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0XFF14182b)),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0XFF14182b))
+                .padding(all = 10.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            AsyncImage(model = favItem.image, contentDescription = "")
+
+
+        }
     }
 }
+
 
 @Composable
 fun SearchScreen(navController: NavController) {
@@ -284,17 +427,31 @@ fun SettingScreen(navController: NavController) {
 }
 
 @Composable
-fun DetailScreen(navController: NavController, image: String?) {
+fun NewScreen(navController: NavController, image: String?) {
     var like by remember {
         mutableStateOf(false)
     }
     val context = LocalContext.current
+    val db = Room.databaseBuilder(
+        context,
+        MyDataBase::class.java,
+        "demo.db"
+    ).allowMainThreadQueries()
+        .build()
+    val repository = remember {
+        Repository(db)
+    }
+    val viewModel = remember {
+        MainViewModel(repository)
+    }
+
+
 
 
     Box(contentAlignment = Alignment.Center) {
 
         AsyncImage(
-            model = "$image",
+            model = image,
             contentDescription = "",
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.FillBounds,
@@ -302,6 +459,27 @@ fun DetailScreen(navController: NavController, image: String?) {
             filterQuality = FilterQuality.High,
         )
 
+        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 650.dp)) {
+            Box(
+                modifier = Modifier
+                    .width(40.dp).height(40.dp).clip(CircleShape)
+                    .background(Color(0XFF3c3d45).copy(alpha= 0.70f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (like){
+                Icon(imageVector = Icons.Filled.Favorite , contentDescription = "", tint = Color.Red, modifier = Modifier.clickable {
+                    like=!like
+                }
+                )}
+                else{
+                    Icon(imageVector = Icons.Default.FavoriteBorder , contentDescription = "", tint = Color.White, modifier = Modifier.clickable {
+                        like = !like
+                        val fav = image?.let { FavItem(null, it, "des") }
+                        fav?.let { viewModel.Insert(it) }
+                    })
+                }
+            }
+        }
 
         Icon(
             imageVector = Icons.Default.ArrowBackIosNew,
@@ -329,7 +507,8 @@ fun DetailScreen(navController: NavController, image: String?) {
                 .clickable { })
         Spacer(modifier = Modifier.height(10.dp))
         if (like) {
-            Icon(imageVector = Icons.Filled.Favorite,
+            Icon(
+                imageVector = Icons.Filled.Favorite,
                 contentDescription = "",
                 modifier = Modifier
                     .padding(end = 5.dp, top = 200.dp)
@@ -338,8 +517,12 @@ fun DetailScreen(navController: NavController, image: String?) {
                     )
                     .align(Alignment.CenterEnd)
                     .size(30.dp)
-                    .clickable { like =! like },
-                tint= Color.Red
+                    .clickable {
+                        like = !like
+
+
+                    },
+                tint = Color.Red
             )
 
         } else {
@@ -354,7 +537,9 @@ fun DetailScreen(navController: NavController, image: String?) {
                     .align(Alignment.CenterEnd)
                     .size(30.dp)
                     .clickable {
-                        like=!like
+                        like = !like
+                        val fav = image?.let { FavItem(null, it, "des") }
+                        fav?.let { viewModel.Insert(it) }
                     })
 
         }
@@ -373,7 +558,7 @@ fun DetailScreen(navController: NavController, image: String?) {
                 .size(30.dp)
                 .clickable {
 
-                   shareText(context,"$image")
+                    shareText(context, "$image")
                 })
 
         Spacer(modifier = Modifier.height(10.dp))

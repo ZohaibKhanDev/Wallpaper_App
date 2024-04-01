@@ -30,11 +30,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.wallpaper.DetailScreen
+import com.example.wallpaper.BottomFav
 import com.example.wallpaper.HomeScreen
-import com.example.wallpaper.New_Wallpaper_Screen
+import com.example.wallpaper.NewScreen
 import com.example.wallpaper.SearchScreen
 import com.example.wallpaper.SettingScreen
+import okhttp3.Route
 
 @Composable
 fun Navigation(navController: NavHostController) {
@@ -43,7 +44,7 @@ fun Navigation(navController: NavHostController) {
             HomeScreen(navController)
         }
         composable(Screen.New_Wallpaper.route) {
-            New_Wallpaper_Screen(navController)
+            BottomFav(navController)
         }
 
         composable(Screen.Search.route) {
@@ -52,19 +53,26 @@ fun Navigation(navController: NavHostController) {
         composable(Screen.Setting.route) {
             SettingScreen(navController)
         }
-        composable(Screen.Detail.route +"/{src}",
+        composable(
+            DetailScreen.Detail.route + "/{src}",
             arguments = listOf(
-                navArgument("src"){
-                    type= NavType.StringType
+                navArgument("src") {
+                    type = NavType.StringType
                 },
 
-            )
-            ){
-            val image=it.arguments?.getString("src")
+                )
+        ) {
+            val image = it.arguments?.getString("src")
 
-            DetailScreen(navController,image)
+
+            NewScreen(navController, image)
         }
     }
+}
+sealed class DetailScreen(
+    val route: String
+){
+    object Detail:DetailScreen("DetailScreen")
 }
 
 sealed class Screen(
@@ -81,18 +89,13 @@ sealed class Screen(
     )
 
     object New_Wallpaper : Screen(
-        "Wallpaper",
-        "Wallpaper",
+        "Fav Wallpaper",
+        "Fav Wallpaper",
         selectedIcon = Icons.Filled.Wallpaper,
         unSelectedIcon = Icons.Outlined.Wallpaper
     )
 
-    object Detail : Screen(
-        "Detail",
-        "Detail",
-        selectedIcon = Icons.Filled.Wallpaper,
-        unSelectedIcon = Icons.Outlined.Wallpaper
-    )
+
 
     object Search : Screen(
         "Search",
@@ -115,13 +118,11 @@ sealed class Screen(
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun Entry() {
-    val navController= rememberNavController()
-    Scaffold(bottomBar = { BottomNavigation(navController = navController)}) {
+    val navController = rememberNavController()
+    Scaffold(bottomBar = { BottomNavigation(navController = navController) }) {
         Navigation(navController = navController)
     }
 }
-
-
 
 
 @Composable
@@ -134,7 +135,7 @@ fun BottomNavigation(navController: NavController) {
     )
 
 
-    NavigationBar(contentColor = Color.White, containerColor = Color.White) {
+    NavigationBar(contentColor = Color.White, containerColor = Color(0XFF14182b)) {
         val navStack by navController.currentBackStackEntryAsState()
         val current = navStack?.destination?.route
         var icon by remember {
@@ -152,10 +153,14 @@ fun BottomNavigation(navController: NavController) {
                 }
             }, icon = {
 
-                Icon(imageVector = if(current==it.route) it.selectedIcon else it.unSelectedIcon, contentDescription ="" )
+                Icon(
+                    imageVector = if (current == it.route) it.selectedIcon else it.unSelectedIcon,
+                    contentDescription = "",
+                    tint = Color.White
+                )
             },
                 label = {
-                    Text(text = it.route)
+                    Text(text = it.route, color = Color.White)
                 }
             )
         }
