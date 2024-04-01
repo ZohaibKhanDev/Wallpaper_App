@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.app.WallpaperManager
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
@@ -79,6 +80,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.wallpaper.api.MainViewModel
@@ -189,16 +191,15 @@ fun HomeScreen(navController: NavController) {/*val context = LocalContext.curre
 
 @Composable
 fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: NavController) {
-    val context = LocalContext.current
 
     Column(
-        modifier = Modifier.wrapContentWidth(),
-        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "New WallPaper")
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2), modifier = Modifier.padding(top = 10.dp)
+            columns = GridCells.Fixed(2), modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 10.dp)
         ) {
             items(photo) {
                 Card(
@@ -231,7 +232,7 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
         }
 
 
-        LazyRow {
+      /*  LazyRow (modifier = Modifier.fillMaxWidth().weight(1f)){
             items(photo) {
                 Card(
                     elevation = CardDefaults.cardElevation(5.dp)
@@ -251,7 +252,7 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
                     }
                 }
             }
-        }
+        }*/
     }
 
 
@@ -288,6 +289,7 @@ fun DetailScreen(navController: NavController, image: String?) {
         mutableStateOf(false)
     }
     val context = LocalContext.current
+
 
     Box(contentAlignment = Alignment.Center) {
 
@@ -329,7 +331,6 @@ fun DetailScreen(navController: NavController, image: String?) {
         if (like) {
             Icon(imageVector = Icons.Filled.Favorite,
                 contentDescription = "",
-                tint = Color.White,
                 modifier = Modifier
                     .padding(end = 5.dp, top = 200.dp)
                     .clip(
@@ -337,10 +338,12 @@ fun DetailScreen(navController: NavController, image: String?) {
                     )
                     .align(Alignment.CenterEnd)
                     .size(30.dp)
-                    .clickable { like = like })
+                    .clickable { like =! like },
+                tint= Color.Red
+            )
 
         } else {
-            Icon(imageVector = Icons.Outlined.Favorite,
+            Icon(imageVector = Icons.Outlined.FavoriteBorder,
                 contentDescription = "",
                 tint = Color.White,
                 modifier = Modifier
@@ -351,8 +354,7 @@ fun DetailScreen(navController: NavController, image: String?) {
                     .align(Alignment.CenterEnd)
                     .size(30.dp)
                     .clickable {
-
-
+                        like=!like
                     })
 
         }
@@ -369,7 +371,10 @@ fun DetailScreen(navController: NavController, image: String?) {
                 )
                 .align(Alignment.CenterEnd)
                 .size(30.dp)
-                .clickable { })
+                .clickable {
+
+                   shareText(context,"$image")
+                })
 
         Spacer(modifier = Modifier.height(10.dp))
         Icon(imageVector = Icons.Default.Download,
@@ -408,5 +413,14 @@ fun DetailScreen(navController: NavController, image: String?) {
 
 }
 
+fun shareText(context: Context, text: String) {
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, text)
+        type = "text/plain"
+    }
+    val shareIntent = Intent.createChooser(sendIntent, null)
+    context.startActivity(shareIntent)
+}
 
 
