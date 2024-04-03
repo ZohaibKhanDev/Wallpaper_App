@@ -1,5 +1,6 @@
 package com.example.wallpaper.api
 
+import androidx.room.Query
 import com.example.wallpaper.api.Constant.APIKEY
 import com.example.wallpaper.api.Constant.BASE_URL
 import com.example.wallpaper.api.Constant.TIMEOUT
@@ -58,7 +59,11 @@ object WallpaperClientApi {
 
     }
 
-    suspend fun getAllWallpaper():Wallpaper{
-        return client.get(BASE_URL + "v1/search?query=nature&per_page=30").body()
+    suspend fun getAllWallpaper(per_page: Int):Wallpaper{
+        return client.get(BASE_URL + "v1/search?query=nature&per_page=$per_page").body()
     }
+    suspend fun searchWallPaper(per_page: Int,query: String):Wallpaper{
+        return client.get(BASE_URL + "v1/search?query=$query&per_page=$per_page").body()
+    }
+
 }

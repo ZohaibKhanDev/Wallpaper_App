@@ -2,7 +2,6 @@ package com.example.wallpaper.navigation
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -17,9 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,9 +37,9 @@ import androidx.navigation.navArgument
 import com.example.wallpaper.BottomFav
 import com.example.wallpaper.HomeScreen
 import com.example.wallpaper.NewScreen
+
 import com.example.wallpaper.SearchScreen
 import com.example.wallpaper.SettingScreen
-import okhttp3.Route
 
 @Composable
 fun Navigation(navController: NavHostController) {

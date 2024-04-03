@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +28,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -40,12 +42,16 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -65,7 +71,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.room.Room
-import androidx.room.util.copyAndClose
 import coil.compose.AsyncImage
 import com.example.wallpaper.api.MainViewModel
 import com.example.wallpaper.api.Photo
@@ -116,9 +121,8 @@ fun HomeScreen(navController: NavController) {
             mutableStateOf<Wallpaper?>(null)
         }
         LaunchedEffect(key1 = Unit) {
-            viewModel.getAllWallpaper()
+            viewModel.getAllWallpaper(30)
         }
-
 
         val state by viewModel.allWallpaper.collectAsState()
         when (state) {
@@ -221,7 +225,7 @@ fun HomeScreen(navController: NavController) {
 
 @Composable
 fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: NavController) {
-
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -276,27 +280,6 @@ fun WallpaperData(photo: List<Photo>, viewModel: MainViewModel, navController: N
         }
 
 
-        /*  LazyRow (modifier = Modifier.fillMaxWidth().weight(1f)){
-              items(photo) {
-                  Card(
-                      elevation = CardDefaults.cardElevation(5.dp)
-                  ) {
-                      Column(
-                          modifier = Modifier
-                              .fillMaxWidth()
-                              .padding(8.dp),
-                          horizontalAlignment = Alignment.CenterHorizontally,
-                          verticalArrangement = Arrangement.Center
-                      ) {
-                          AsyncImage(model = it.src.landscape,
-                              contentDescription = "",
-                              modifier = Modifier.clickable {
-
-                              })
-                      }
-                  }
-              }
-          }*/
     }
 
 
@@ -408,13 +391,179 @@ fun New_Wallpaper_Screen(navController: NavController, favItem: FavItem) {
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(navController: NavController) {
+    var searchBar by remember {
+        mutableStateOf("")
+    }
+    val context = LocalContext.current
+    val db = Room.databaseBuilder(
+        context,
+        MyDataBase::class.java,
+        "demo.db"
+    ).allowMainThreadQueries()
+        .build()
+    val repository = remember {
+        Repository(db)
+    }
+    val viewModel = remember {
+        MainViewModel(repository)
+    }
+    var searchdata by remember {
+        mutableStateOf<Wallpaper?>(null)
+    }
+    val loading by remember {
+        mutableStateOf(false)
+    }
+    val searchState by viewModel.allSearch.collectAsState()
+    when (searchState) {
+        is ResultState.Error -> {
+            loading == false
+            val error = (searchState as ResultState.Error).error
+            Text(text = error.toString())
+        }
 
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-        Text(text = "This is  Search Screen")
+        ResultState.Loading -> {
+            loading == true
+        }
+
+        is ResultState.Success -> {
+            loading == false
+            val success = (searchState as ResultState.Success).response
+            searchdata = success
+        }
+    }
+    var clearState by remember {
+        mutableStateOf(false)
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0XFF14182b))
+    ) {
+        Row(
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Color(0XFF14182b)
+                )
+        ) {
+            SearchBar(modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0XFF14182b)),
+                colors = SearchBarDefaults.colors(
+                    containerColor = Color(0XFF14182b),
+                    dividerColor = Color.White,
+                    inputFieldColors = TextFieldDefaults.textFieldColors(Color.White)
+                ),
+                query = searchBar,
+                onQueryChange = {
+                    searchBar = it
+                },
+                onSearch = {
+                    viewModel.getAllSearch(per_page = 40, searchBar)
+                },
+                placeholder = {
+                    Text(text = "Enter WallPaper Name", color = Color.White)
+                },
+                trailingIcon = {
+
+                    if (searchBar >= 0.toString()) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "",
+                            modifier = Modifier.clickable {searchBar = ""},
+                            tint = Color.White
+                        )
+                    }
+
+                },
+                leadingIcon = {
+                              Icon(imageVector = Icons.Default.Search, contentDescription = "", tint = Color.White)
+                },
+                active = true,
+                onActiveChange = {
+
+                }
+            ) {
+                if (loading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                searchdata?.photos?.let { photo ->
+                    SearchItem(
+                        photo = photo, navController = navController
+                    )
+                }
+
+
+            }
+        }
     }
 }
+
+
+@Composable
+fun SearchItem(photo: List<Photo>, navController: NavController) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0XFF14182b)),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(1), modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0XFF14182b))
+
+                .padding(top = 10.dp)
+        ) {
+            items(photo) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0XFF14182b))
+                        .padding(7.dp),
+                    elevation = CardDefaults.cardElevation(5.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0XFF14182b)),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+
+                        AsyncImage(model = it.src.landscape,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .clickable {
+                                    navController.navigate(
+                                        Screen.Detail.route +
+                                                "/${Uri.encode(it.src.landscape)}"
+                                    )
+                                }
+                                .background(Color(0XFF14182b)))
+
+                    }
+                }
+            }
+        }
+
+
+    }
+
+
+}
+
 
 @Composable
 fun SettingScreen(navController: NavController) {
@@ -621,8 +770,9 @@ fun NewScreen(navController: NavController, image: String?) {
 
         if (info) {
             AlertDialog(
-                onDismissRequest = { info = !info }, confirmButton = {
-                    Text(text ="Ok", modifier = Modifier.clickable { info=!info})
+                onDismissRequest = { info = !info },
+                confirmButton = {
+                    Text(text = "Ok", modifier = Modifier.clickable { info = !info })
                 },
                 title = {
                     Text(text = "WallPaper")
@@ -634,9 +784,9 @@ fun NewScreen(navController: NavController, image: String?) {
                 },
                 tonalElevation = 10.dp,
 
-              /*  dismissButton = {
-                    Text(text = "Cancel", modifier = Modifier.clickable { info = !info })
-                }*/
+                /*  dismissButton = {
+                      Text(text = "Cancel", modifier = Modifier.clickable { info = !info })
+                  }*/
 
 
             )
