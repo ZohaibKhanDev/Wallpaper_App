@@ -34,9 +34,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.wallpaper.About_Us
 import com.example.wallpaper.BottomFav
+import com.example.wallpaper.Contact_Us
 import com.example.wallpaper.HomeScreen
+import com.example.wallpaper.My_Wishlist
 import com.example.wallpaper.NewScreen
+import com.example.wallpaper.Privacy_Policy
 
 import com.example.wallpaper.SearchScreen
 import com.example.wallpaper.SettingScreen
@@ -56,6 +60,18 @@ fun Navigation(navController: NavHostController) {
         }
         composable(Screen.Setting.route) {
             SettingScreen(navController)
+        }
+        composable(Screen.My_Wishlist.route){
+            My_Wishlist(navController)
+        }
+        composable(Screen.About_Us.route){
+            About_Us(navController)
+        }
+        composable(Screen.Privacy.route){
+            Privacy_Policy(navController)
+        }
+        composable(Screen.Contact_Us.route){
+            Contact_Us(navController)
         }
         composable(
             Screen.Detail.route + "/{src}",
@@ -94,6 +110,33 @@ sealed class Screen(
         selectedIcon = Icons.Filled.Home,
         unSelectedIcon = Icons.Outlined.Home
     )
+
+    object My_Wishlist : Screen(
+        "My_Wishlist",
+        "My_Wishlist",
+        selectedIcon = Icons.Filled.Home,
+        unSelectedIcon = Icons.Outlined.Home
+    )
+    object About_Us : Screen(
+        "About_Us",
+        "About_Us",
+        selectedIcon = Icons.Filled.Home,
+        unSelectedIcon = Icons.Outlined.Home
+    )
+    object Privacy : Screen(
+        "Privacy",
+        "Privacy",
+        selectedIcon = Icons.Filled.Home,
+        unSelectedIcon = Icons.Outlined.Home
+    )
+    object Contact_Us : Screen(
+        "Contact_Us",
+        "Contact_Us",
+        selectedIcon = Icons.Filled.Home,
+        unSelectedIcon = Icons.Outlined.Home
+    )
+
+
 
     object New_Wallpaper : Screen(
         "Fav Wallpaper",
@@ -175,7 +218,9 @@ fun BottomNavigation(navController: NavController) {
                         imageVector = if (current == it.route) it.selectedIcon else it.unSelectedIcon,
                         contentDescription = "",
                         tint = Color.White,
-                        modifier = Modifier.width(32.dp).height(28.dp)
+                        modifier = Modifier
+                            .width(32.dp)
+                            .height(28.dp)
                     )
                 },
 
