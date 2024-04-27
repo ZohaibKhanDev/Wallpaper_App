@@ -11,6 +11,7 @@
 - **Comprehensive Search**
 - **Set WallPaper**
 - **Trending WallPaper**
+- **Contact Us**
 
 
 ## 🤝 Connect with Me
