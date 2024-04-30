@@ -12,6 +12,7 @@
 - **Set WallPaper**
 - **Trending WallPaper**
 - **Contact Us**
+- **Privacy Page**
 
 
 ## 🤝 Connect with Me
