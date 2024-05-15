@@ -3,7 +3,7 @@
 
 ## Overview
 
-Wallpaper Bliss is a sleek and user-friendly wallpaper app designed to enhance your device's aesthetics with a vast collection of high-quality backgrounds. With an intuitive interface, you can effortlessly browse through diverse categories, from nature and abstract art to seasonal themes and minimalist designs. Enjoy daily updates, ensuring fresh and trendy wallpapers to match any mood or occasion. Customize your experience with easy-to-use filters and favorite lists, allowing quick access to your top picks. The app supports all screen resolutions, ensuring perfect fit and clarity on any device. Seamlessly set wallpapers with a single tap, and transform your screen into a visual
+Wallpaper Bliss is a sleek and user-friendly wallpaper app designed to enhance your device's aesthetics with a vast collection of high-quality backgrounds. With an intuitive interface, you can effortlessly browse through diverse categories, from nature and abstract art to seasonal themes and minimalist designs. Enjoy daily updates, ensuring fresh and trendy wallpapers to match any mood or occasion. Customize your experience with easy-to-use filters and favorite lists, allowing quick access to your top picks. The app supports all screen resolutions, ensuring perfect fit and clarity on any device. Seamlessly set wallpapers with a single tap, and transform your screen into a visual masterpiece with Wallpaper Bliss
 
 
 ## 🚀 Key Features
