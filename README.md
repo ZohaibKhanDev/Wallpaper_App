@@ -6,7 +6,6 @@
 - **All WallPaper**
 - **Fav Option**
 - **Sharing Options**
-- **Catagerys**
 - **WallPaper Details**
 - **Comprehensive Search**
 - **Set WallPaper**
