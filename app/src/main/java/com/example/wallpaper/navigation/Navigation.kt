@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Home 
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Wallpaper
@@ -90,7 +90,6 @@ fun Navigation(navController: NavHostController) {
     }
 }
 
-
 sealed class Screen(
     val title: String,
     val route: String,
@@ -160,8 +159,6 @@ sealed class Screen(
         selectedIcon = Icons.Filled.Settings,
         unSelectedIcon = Icons.Outlined.Settings
     )
-
-
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -173,7 +170,6 @@ fun Entry() {
     }
 }
 
-
 @Composable
 fun BottomNavigation(navController: NavController) {
     val items = listOf(
@@ -182,7 +178,6 @@ fun BottomNavigation(navController: NavController) {
         Screen.Search,
         Screen.Setting
     )
-
 
     NavigationBar(contentColor = Color.White, containerColor = Color(0XFF14182b)) {
         val navStack by navController.currentBackStackEntryAsState()
